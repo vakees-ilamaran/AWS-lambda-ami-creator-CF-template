@@ -1,0 +1,115 @@
+Description: > 
+  This template is used to deploy the vakees_lambdacreateami function.
+
+#Define your parameters here.
+Parameters:
+    lambdaFunctionName:
+      Type: String
+      Default: vakees_lambdacreateami
+    lambdaFunctionHandler:
+      Type: String
+      #TODO: auto build this string
+      Default: vakees_lambdacreateami.lambda_handler
+    lambdaRuntime:
+      Type: String
+      Default: python2.7
+    lambdaS3Bucket:
+      Type: String
+      Default: vakees-lambda-deploy
+    lambdaS3Key:
+      Type: String
+      Default: vakees_lambdacreateami.zip
+    UseExistingIAMRole:
+      Type: "String"
+      Description: "Use existing lambdacreate role or please create your custom role"
+      AllowedValues: 
+        - "Use Existing"  #Update this value with role
+        - "Custom role"
+
+Conditions:
+    CreateRole: !Equals [!Ref UseExistingIAMRole, "Create"]     
+      
+#Define the lambda function
+
+Resources:
+   lambdaCreateImage:   
+      Type: AWS::Lambda::Function
+      Properties:
+        FunctionName: !Ref lambdaFunctionName
+        Handler: !Ref lambdaFunctionHandler
+        Runtime: !Ref lambdaRuntime
+        Code: 
+          S3Bucket: !Ref lambdaS3Bucket
+          S3Key: !Ref lambdaS3Key
+        Role: !If [CreateRole,  { "Fn::GetAtt": ["lambdaCreateImageRole", "Arn"] }, "arn:aws:iam::XXXXXXXXXXXX:role/lambdaCreateImageRole"]
+        
+ 
+# Trigger the lambda function to run every 24h
+           
+   ScheduleRule:
+      Description: "Creates a schedule that is triggers the execution of the lambdaCreateImage function every day."
+      Type: AWS::Events::Rule
+      Properties:
+        Name: ScheduleCreateImage
+        ScheduleExpression: "cron(0 3 * * ? *)"
+        #The State must be in all caps
+        State: ENABLED
+        Targets:
+            - Id: "lambdaCreateImageScheduler"
+              Arn: { "Fn::GetAtt": ["lambdaCreateImageRole", "Arn"] }
+              
+              
+   CreateImageLambdaPermission:
+      Type: AWS::Lambda::Permission
+      #Condition: CreateRole
+      Properties:
+        Action: lambda:InvokeFunction
+        FunctionName: !Ref lambdaCreateImage
+        Principal: events.amazonaws.com
+        SourceArn: { "Fn::GetAtt": ["ScheduleRule", "Arn"]}
+              
+                                 
+# Configuration of the Role and Policy used to run this function
+                                   
+   lambdaCreateImageRole:
+      Type: AWS::IAM::Role
+      Condition: CreateRole
+      Properties:
+        RoleName: lambdaCreateImageRole
+        AssumeRolePolicyDocument:
+          Version: 2012-10-17
+          Statement:
+            -
+              Effect: Allow
+              Principal:
+                Service:
+                  - lambda.amazonaws.com
+              Action:
+                - sts:AssumeRole
+              
+               
+                
+   lambdaCreateImageExecPolicy:
+      Type: AWS::IAM::Policy
+      Condition: CreateRole
+      Properties:
+        PolicyName: lambdaCreateImageExecPolicy
+        Roles: [!Ref lambdaCreateImageRole]
+        PolicyDocument:
+          Version: 2012-10-17
+          Statement:
+            -
+              Effect: Allow
+              Action:
+                - "logs:CreateLogGroup"
+                - "logs:CreateLogStream"
+                - "logs:PutLogEvents"
+              Resource: "arn:aws:logs:*:*:*"
+            -
+              Effect: Allow
+              Action:
+                - "ec2:DescribeInstances"
+                - "ec2:DescribeTags"
+                - "ec2:CreateImage"
+                - "ec2:CreateTags"
+              Resource: "*"
