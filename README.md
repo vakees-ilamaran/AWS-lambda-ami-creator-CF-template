@@ -2,9 +2,11 @@
 Lambda function to create a image and CF template to deploy the lambda function
 
 ## How to Use
-
 Use this below cloudFormation template to deploy this lambda function
 
+Tag an instance with you want to create an image
+Name: ScheduledBackup
+Value: True
 
 
 ### IAM roles to be created
