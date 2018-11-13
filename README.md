@@ -53,21 +53,21 @@ region = eu-west-2
 
 #### Validate your template
 ``` 
-aws cloudformation validate-template --template-body file://./Launch_EC2_Instance_Sample_Config.yaml
+aws cloudformation validate-template --template-body file://./Cloudformation_Lambda_Deploy.yaml
 ```
 
 #### Create a stack using your template
 ``` 
-aws cloudformation create-stack --stack-name ec2-test-stack --template-body  file://./Launch_EC2_Instance_Sample_Config.yaml 
+aws cloudformation create-stack --stack-name ec2-test-stack --template-body  file://./Cloudformation_Lambda_Deploy.yaml
 ```
 
 #### Update your stack in-case of any modification on the template
 ``` 
-aws cloudformation update-stack --stack-name ec2-test-stack --template-body  file://./Launch_EC2_Instance_Sample_Config.yaml
+aws cloudformation update-stack --stack-name ec2-test-stack --template-body  file://./Cloudformation_Lambda_Deploy.yaml
 ```
 ___
 ## Optional way to update stack
 #### You can create a change set and execute it for updating the stack from the cloudformation UI.
 ```
-aws cloudformation create-change-set --stack-name ec2-test-stack --template-body file://./Launch_EC2_Instance_Sample_Config.yaml --change-set-name port-update --description "updating the lambda function name"
+aws cloudformation create-change-set --stack-name ec2-test-stack --template-body file://./Cloudformation_Lambda_Deploy.yaml --change-set-name port-update --description "updating the lambda function name"
 ```
