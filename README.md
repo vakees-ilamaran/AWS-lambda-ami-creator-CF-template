@@ -31,5 +31,5 @@ Use this below cloudFormation template to deploy this lambda function
             "Effect": "Allow",
             "Resource": "*"
         }
-    ]
-}
+                     ] 
+    }
